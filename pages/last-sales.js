@@ -1,29 +1,46 @@
 import { useEffect, useState } from "react"
+import useSWR from "swr"
 
 const LastSalesPage = (props) => {
     const [sales, setSales] = useState()
-    const [isLoading, setIsLoading] = useState(false)
+    // const [isLoading, setIsLoading] = useState(false)
+
+    const fetcher = (url) => fetch(url).then((res) => res.json());
+
+    const { data, error } = useSWR('https://react-4612b-default-rtdb.firebaseio.com/sales.json', fetcher)
 
     useEffect(() => {
-        setIsLoading(true)
-        fetch('https://react-4612b-default-rtdb.firebaseio.com/sales.json')
-            .then(response => response.json())
-            .then(data => {
-                const salesDataArray = []
-                for(const key in data) {
-                    salesDataArray.push({id: key, username: data[key].username, volume: data[key].volume})
-                }
-                setSales(salesDataArray)
-                setIsLoading(false)
-            })
-    }, [])
+        if(data) {
+            const salesDataArray = []
+            for(const key in data) {
+                salesDataArray.push({id: key, username: data[key].username, volume: data[key].volume})
+            }
+            setSales(salesDataArray)
+        }
+    }, [data])
 
-    if (isLoading) {
+    // useEffect(() => {
+    //     setIsLoading(true)
+    //     fetch('https://react-4612b-default-rtdb.firebaseio.com/sales.json')
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             const salesDataArray = []
+    //             for(const key in data) {
+    //                 salesDataArray.push({id: key, username: data[key].username, volume: data[key].volume})
+    //             }
+    //             setSales(salesDataArray)
+    //             setIsLoading(false)
+    //         })
+    // }, [])
+
+    if(error) {
+        return <p>Failed to Load</p>
+    }
+    
+    if (!data || !sales) {
         return <p>Loading ...</p>
     }
-    if(!sales) {
-        return <p>No Data Yet</p>
-    }
+    
     return <ul>
         {sales.map(sale => (
             <li key={sale.id}>
